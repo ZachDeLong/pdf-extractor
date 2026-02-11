@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-helvetica: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-body: "EB Garamond", Georgia, serif;
+
+  --color-bg-deep: var(--bg-deep);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-accent-warm: var(--accent-warm);
+  --color-accent-warm-hover: var(--accent-warm-hover);
+  --color-accent-bg: var(--accent-bg);
+  --color-text-primary: var(--text-primary);
+  --color-text-dark: var(--text-dark);
+  --color-text-muted: var(--text-muted);
+  --color-text-muted-light: var(--text-muted-light);
+  --color-border-default: var(--border-default);
+  --color-error: var(--error);
+  --color-error-bg: var(--error-bg);
+}
+
+/* Dark mode (default) */
+:root {
+  --bg-deep: #0f0d0b;
+  --bg-surface: #1a1714;
+  --bg-elevated: #242019;
+  --accent-warm: #d4a456;
+  --accent-warm-hover: #e0b46a;
+  --accent-bg: #2d2520;
+  --text-primary: #e8e2d9;
+  --text-dark: #e8e4dc;
+  --text-muted: #6b655c;
+  --text-muted-light: #4a453d;
+  --border-default: #2e2820;
+  --error: #e74c3c;
+  --error-bg: #2d2020;
+}
+
+/* Light mode */
+.light {
+  --bg-deep: #f8f6f2;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
+  --accent-warm: #c08840;
+  --accent-warm-hover: #a87530;
+  --accent-bg: #fdf8f6;
+  --text-primary: #3d3832;
+  --text-dark: #3d3832;
+  --text-muted: #8a8072;
+  --text-muted-light: #d9d2c5;
+  --border-default: #e5e0d8;
+  --error: #c0392b;
+  --error-bg: #fdf2f2;
+}
+
+body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-helvetica);
+  font-style: italic;
+  min-height: 100vh;
+  transition:
+    background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus ring */
+*:focus-visible {
+  outline: 2px solid var(--accent-warm);
+  outline-offset: 2px;
+}
+
+/* Hide number input spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+@keyframes fade-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
