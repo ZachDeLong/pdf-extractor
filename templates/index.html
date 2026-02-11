@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pdf pages</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8f6f2;
+            --card-bg: #fff;
+            --text: #4a453d;
+            --text-dark: #3d3832;
+            --muted: #c2b9a1;
+            --muted-light: #d9d2c5;
+            --accent: #C15F3C;
+            --accent-hover: #a94f32;
+            --accent-bg: #fdf8f6;
+            --error: #c0392b;
+            --error-bg: #fdf2f2;
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-out: cubic-bezier(0, 0, 0.2, 1);
+            --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        [data-theme="dark"] {
+            --bg: #1a1918;
+            --card-bg: #252422;
+            --text: #c2b9a1;
+            --text-dark: #e8e4dc;
+            --muted: #6b6560;
+            --muted-light: #4a453d;
+            --accent: #C15F3C;
+            --accent-hover: #d4705a;
+            --accent-bg: #2d2520;
+            --error: #e74c3c;
+            --error-bg: #2d2020;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Epilogue', sans-serif;
+            min-height: 100vh;
+            padding: 60px 24px;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            transition: background 0.4s var(--ease), color 0.4s var(--ease);
+        }
+        .container {
+            max-width: 420px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        h1 {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            transition: color 0.4s var(--ease);
+        }
+        .theme-toggle {
+            background: none;
+            border: 1px solid var(--muted);
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-family: inherit;
+            cursor: pointer;
+            padding: 4px 8px;
+            color: var(--muted);
+            transition: all 0.2s var(--ease);
+        }
+        .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+        .theme-toggle:active { transform: scale(0.95); }
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-bottom: 36px;
+            transition: color 0.4s var(--ease);
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 32px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px 16px;
+            background: var(--card-bg);
+            border: 1px solid var(--muted);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.8rem;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.25s var(--ease);
+        }
+        .tab:hover { border-color: var(--accent); color: var(--text); }
+        .tab:active { transform: scale(0.98); }
+        .tab.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-bg);
+        }
+        .panel {
+            display: none;
+            animation: fadeSlideIn 0.3s var(--ease-out);
+        }
+        .panel.active { display: block; }
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--muted);
+            margin-bottom: 8px;
+            transition: color 0.3s var(--ease);
+        }
+        .page-count {
+            font-weight: 400;
+            color: var(--accent);
+            transition: opacity 0.3s var(--ease);
+        }
+        .page-count.loading {
+            opacity: 0.5;
+        }
+        .drop-zone {
+            border: 1px solid var(--muted);
+            border-radius: 8px;
+            padding: 28px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s var(--ease);
+            background: var(--card-bg);
+        }
+        .drop-zone:hover {
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+        .drop-zone:active {
+            transform: translateY(0);
+        }
+        .drop-zone.has-file {
+            border-color: var(--accent);
+            background: var(--accent-bg);
+        }
+        .drop-zone.dragover {
+            border-color: var(--accent);
+            background: var(--accent-bg);
+            transform: scale(1.01);
+        }
+        .drop-text {
+            font-size: 0.875rem;
+            color: var(--muted);
+            transition: opacity 0.2s var(--ease);
+        }
+        .file-name {
+            font-size: 0.875rem;
+            color: var(--accent);
+            animation: fadeIn 0.3s var(--ease-out);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        input[type="file"] { display: none; }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--muted);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            background: var(--card-bg);
+            color: var(--text);
+            transition: all 0.25s var(--ease);
+        }
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(193, 95, 60, 0.1);
+        }
+        input::placeholder {
+            color: var(--muted-light);
+            transition: color 0.3s var(--ease);
+        }
+        .help {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 8px;
+            transition: color 0.3s var(--ease);
+        }
+        button[type="submit"], .submit-btn {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 450;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.25s var(--ease);
+            position: relative;
+            overflow: hidden;
+        }
+        button[type="submit"]:hover, .submit-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(193, 95, 60, 0.25);
+        }
+        button[type="submit"]:active, .submit-btn:active {
+            transform: translateY(0) scale(0.99);
+            box-shadow: none;
+        }
+        button[type="submit"]:disabled, .submit-btn:disabled {
+            background: var(--muted);
+            cursor: default;
+            transform: none;
+            box-shadow: none;
+        }
+        .error {
+            background: var(--error-bg);
+            color: var(--error);
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s var(--ease);
+            pointer-events: none;
+            max-height: 0;
+            padding: 0 14px;
+            margin-bottom: 0;
+            overflow: hidden;
+        }
+        .error.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+            max-height: 100px;
+            padding: 12px 14px;
+            margin-bottom: 24px;
+        }
+
+        /* Merge panel styles */
+        .merge-list {
+            min-height: 60px;
+            border: 1px solid var(--muted);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            background: var(--card-bg);
+            transition: all 0.25s var(--ease);
+        }
+        .merge-list:hover {
+            border-color: var(--accent);
+        }
+        .merge-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--accent-bg);
+            border: 1px solid var(--muted);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: grab;
+            font-size: 0.85rem;
+            color: var(--text);
+            transition: all 0.2s var(--ease);
+            animation: slideIn 0.25s var(--ease-out);
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .merge-item:last-child { margin-bottom: 0; }
+        .merge-item:hover {
+            border-color: var(--accent);
+            transform: translateX(2px);
+        }
+        .merge-item:active { cursor: grabbing; }
+        .merge-item .drag-handle {
+            color: var(--muted);
+            font-size: 1rem;
+            transition: color 0.2s var(--ease);
+        }
+        .merge-item:hover .drag-handle {
+            color: var(--accent);
+        }
+        .merge-item .name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .merge-item .remove {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 0 4px;
+            transition: all 0.2s var(--ease);
+            border-radius: 4px;
+        }
+        .merge-item .remove:hover {
+            color: var(--error);
+            background: var(--error-bg);
+        }
+        .merge-item.dragging {
+            opacity: 0.5;
+            transform: scale(1.02);
+        }
+        .add-more {
+            width: 100%;
+            padding: 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--muted);
+            border-radius: 8px;
+            color: var(--muted);
+            font-family: inherit;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.25s var(--ease);
+            margin-bottom: 24px;
+        }
+        .add-more:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-1px);
+        }
+        .add-more:active {
+            transform: translateY(0) scale(0.99);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: var(--muted);
+            font-size: 0.85rem;
+            transition: color 0.3s var(--ease);
+        }
+
+        /* Smooth focus ring for accessibility */
+        *:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>pdf pages</h1>
+            <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">dark</button>
+        </header>
+        <p class="subtitle">get the specific textbook pages you need</p>
+
+        <div class="tabs">
+            <button class="tab active" data-panel="extract">extract</button>
+            <button class="tab" data-panel="merge">merge</button>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <!-- Extract Panel -->
+        <div class="panel active" id="extractPanel">
+            <form id="extractForm">
+                <div class="form-group">
+                    <label>
+                        file
+                        <span class="page-count" id="pageCount"></span>
+                    </label>
+                    <div class="drop-zone" id="dropZone">
+                        <input type="file" name="pdf" id="pdf" accept=".pdf" required>
+                        <div class="drop-text" id="dropText">drop pdf</div>
+                        <div class="file-name" id="fileName" style="display:none;"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>pages</label>
+                    <input type="text" name="pages" id="pages" placeholder="1-26" required>
+                    <p class="help">ranges like 1-26 or individual like 5, 12</p>
+                </div>
+
+                <div class="form-group">
+                    <label>skip intro pages</label>
+                    <input type="number" name="offset" id="offset" placeholder="0" min="0">
+                    <p class="help">skip title pages, table of contents, etc.</p>
+                </div>
+
+                <button type="submit" id="extractBtn">download</button>
+            </form>
+        </div>
+
+        <!-- Merge Panel -->
+        <div class="panel" id="mergePanel">
+            <form id="mergeForm">
+                <input type="file" id="mergeInput" accept=".pdf" multiple style="display:none;">
+                <div class="merge-list" id="mergeList">
+                    <div class="empty-state" id="emptyState">drop pdfs here or click below</div>
+                </div>
+                <button type="button" class="add-more" id="addMore">+ add pdfs</button>
+                <button type="submit" class="submit-btn" id="mergeBtn" disabled>merge pdfs</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        themeToggle.textContent = savedTheme === 'dark' ? 'light' : 'dark';
+
+        themeToggle.onclick = () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            themeToggle.textContent = next === 'dark' ? 'light' : 'dark';
+        };
+
+        // Tabs
+        const tabs = document.querySelectorAll('.tab');
+        const panels = document.querySelectorAll('.panel');
+        tabs.forEach(tab => {
+            tab.onclick = () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                panels.forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                const panel = document.getElementById(tab.dataset.panel + 'Panel');
+                panel.classList.add('active');
+                // Re-trigger animation
+                panel.style.animation = 'none';
+                panel.offsetHeight; // Trigger reflow
+                panel.style.animation = null;
+                hideError();
+            };
+        });
+
+        // Error handling
+        const errorEl = document.getElementById('error');
+        function showError(msg) {
+            errorEl.textContent = msg;
+            errorEl.classList.add('show');
+        }
+        function hideError() {
+            errorEl.classList.remove('show');
+        }
+
+        // ===== EXTRACT =====
+        const dropZone = document.getElementById('dropZone');
+        const pdf = document.getElementById('pdf');
+        const dropText = document.getElementById('dropText');
+        const fileName = document.getElementById('fileName');
+        const pageCount = document.getElementById('pageCount');
+        const extractForm = document.getElementById('extractForm');
+        const extractBtn = document.getElementById('extractBtn');
+        const offsetInput = document.getElementById('offset');
+
+        // Load saved offset
+        const savedOffset = localStorage.getItem('offset');
+        if (savedOffset) offsetInput.value = savedOffset;
+        offsetInput.onchange = () => localStorage.setItem('offset', offsetInput.value);
+
+        dropZone.onclick = () => pdf.click();
+        dropZone.ondragover = e => { e.preventDefault(); dropZone.classList.add('dragover'); };
+        dropZone.ondragleave = () => dropZone.classList.remove('dragover');
+        dropZone.ondrop = e => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                pdf.files = e.dataTransfer.files;
+                updateFile();
+            }
+        };
+        pdf.onchange = updateFile;
+
+        async function updateFile() {
+            hideError();
+            if (pdf.files.length) {
+                dropText.style.display = 'none';
+                fileName.textContent = pdf.files[0].name;
+                fileName.style.display = 'block';
+                dropZone.classList.add('has-file');
+                pageCount.textContent = 'checking...';
+                pageCount.classList.add('loading');
+
+                // Get page count
+                const formData = new FormData();
+                formData.append('pdf', pdf.files[0]);
+                try {
+                    const res = await fetch('/info', { method: 'POST', body: formData });
+                    const data = await res.json();
+                    pageCount.classList.remove('loading');
+                    if (data.pages) {
+                        pageCount.textContent = data.pages + ' pages';
+                    } else {
+                        pageCount.textContent = '';
+                        showError(data.error || 'Could not read PDF');
+                    }
+                } catch {
+                    pageCount.classList.remove('loading');
+                    pageCount.textContent = '';
+                }
+            }
+        }
+
+        extractForm.onsubmit = async (e) => {
+            e.preventDefault();
+            hideError();
+            extractBtn.disabled = true;
+            extractBtn.textContent = 'preparing...';
+
+            const formData = new FormData(extractForm);
+            try {
+                const res = await fetch('/extract', { method: 'POST', body: formData });
+                if (!res.ok) {
+                    const data = await res.json();
+                    showError(data.error || 'Something went wrong');
+                    extractBtn.disabled = false;
+                    extractBtn.textContent = 'download';
+                    return;
+                }
+                // Download the file
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = res.headers.get('content-disposition')?.match(/filename="(.+)"/)?.[1] || 'extracted.pdf';
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                showError('Network error');
+            }
+            extractBtn.disabled = false;
+            extractBtn.textContent = 'download';
+        };
+
+        // ===== MERGE =====
+        const mergeList = document.getElementById('mergeList');
+        const mergeInput = document.getElementById('mergeInput');
+        const addMore = document.getElementById('addMore');
+        const mergeForm = document.getElementById('mergeForm');
+        const mergeBtn = document.getElementById('mergeBtn');
+        const emptyState = document.getElementById('emptyState');
+
+        let mergeFiles = [];
+
+        addMore.onclick = () => mergeInput.click();
+        mergeList.onclick = (e) => { if (e.target === mergeList || e.target === emptyState) mergeInput.click(); };
+
+        mergeList.ondragover = e => { e.preventDefault(); mergeList.style.borderColor = 'var(--accent)'; };
+        mergeList.ondragleave = () => mergeList.style.borderColor = '';
+        mergeList.ondrop = e => {
+            e.preventDefault();
+            mergeList.style.borderColor = '';
+            addFiles(Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf'));
+        };
+
+        mergeInput.onchange = () => {
+            addFiles(Array.from(mergeInput.files));
+            mergeInput.value = '';
+        };
+
+        function addFiles(files) {
+            hideError();
+            mergeFiles.push(...files);
+            renderMergeList();
+        }
+
+        function renderMergeList() {
+            emptyState.style.display = mergeFiles.length ? 'none' : 'block';
+            mergeBtn.disabled = mergeFiles.length < 2;
+
+            // Remove old items
+            mergeList.querySelectorAll('.merge-item').forEach(el => el.remove());
+
+            mergeFiles.forEach((file, i) => {
+                const item = document.createElement('div');
+                item.className = 'merge-item';
+                item.draggable = true;
+                item.dataset.index = i;
+                item.style.animationDelay = `${i * 0.05}s`;
+                item.innerHTML = `
+                    <span class="drag-handle">⋮⋮</span>
+                    <span class="name">${file.name}</span>
+                    <button type="button" class="remove" data-index="${i}">×</button>
+                `;
+                mergeList.appendChild(item);
+            });
+
+            // Drag to reorder
+            let draggedIndex = null;
+            mergeList.querySelectorAll('.merge-item').forEach(item => {
+                item.ondragstart = (e) => {
+                    draggedIndex = parseInt(item.dataset.index);
+                    item.classList.add('dragging');
+                };
+                item.ondragend = () => {
+                    item.classList.remove('dragging');
+                };
+                item.ondragover = (e) => {
+                    e.preventDefault();
+                    const targetIndex = parseInt(item.dataset.index);
+                    if (draggedIndex !== null && draggedIndex !== targetIndex) {
+                        const [moved] = mergeFiles.splice(draggedIndex, 1);
+                        mergeFiles.splice(targetIndex, 0, moved);
+                        draggedIndex = targetIndex;
+                        renderMergeList();
+                    }
+                };
+            });
+
+            // Remove buttons
+            mergeList.querySelectorAll('.remove').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    mergeFiles.splice(parseInt(btn.dataset.index), 1);
+                    renderMergeList();
+                };
+            });
+        }
+
+        mergeForm.onsubmit = async (e) => {
+            e.preventDefault();
+            if (mergeFiles.length < 2) return;
+
+            hideError();
+            mergeBtn.disabled = true;
+            mergeBtn.textContent = 'merging...';
+
+            const formData = new FormData();
+            mergeFiles.forEach(f => formData.append('pdfs', f));
+
+            try {
+                const res = await fetch('/merge', { method: 'POST', body: formData });
+                if (!res.ok) {
+                    const data = await res.json();
+                    showError(data.error || 'Something went wrong');
+                    mergeBtn.disabled = false;
+                    mergeBtn.textContent = 'merge pdfs';
+                    return;
+                }
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'merged.pdf';
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch {
+                showError('Network error');
+            }
+            mergeBtn.disabled = false;
+            mergeBtn.textContent = 'merge pdfs';
+        };
+    </script>
+</body>
+</html>
