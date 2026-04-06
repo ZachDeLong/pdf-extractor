@@ -14,6 +14,7 @@ export function MergeTab({ onError }: MergeTabProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [processing, setProcessing] = useState(false);
   const dragIndexRef = useRef<number | null>(null);
+  const lastTargetRef = useRef<number | null>(null);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
 
   const addFiles = useCallback(
@@ -38,6 +39,8 @@ export function MergeTab({ onError }: MergeTabProps) {
       e.preventDefault();
       const fromIndex = dragIndexRef.current;
       if (fromIndex === null || fromIndex === targetIndex) return;
+      if (lastTargetRef.current === targetIndex) return;
+      lastTargetRef.current = targetIndex;
 
       setFiles((prev) => {
         const next = [...prev];
@@ -53,6 +56,7 @@ export function MergeTab({ onError }: MergeTabProps) {
 
   const handleDragEnd = useCallback(() => {
     dragIndexRef.current = null;
+    lastTargetRef.current = null;
     setDraggingIndex(null);
   }, []);
 

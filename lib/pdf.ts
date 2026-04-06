@@ -36,7 +36,7 @@ export async function extractPages(
 
   const pdfBytes = await dest.save();
   const baseName = file.name.replace(/\.pdf$/i, "");
-  const rangeStr = pages.join("_").replace(/,/g, "_");
+  const rangeStr = collapseRanges(pages);
   const filename = `${baseName}_pages_${rangeStr}.pdf`;
 
   return { bytes: pdfBytes, filename };
@@ -57,12 +57,32 @@ export async function mergePdfs(files: File[]): Promise<Uint8Array> {
   return dest.save();
 }
 
+function collapseRanges(pages: number[]): string {
+  if (pages.length === 0) return "";
+  const ranges: string[] = [];
+  let start = pages[0];
+  let end = pages[0];
+  for (let i = 1; i < pages.length; i++) {
+    if (pages[i] === end + 1) {
+      end = pages[i];
+    } else {
+      ranges.push(start === end ? `${start}` : `${start}-${end}`);
+      start = pages[i];
+      end = pages[i];
+    }
+  }
+  ranges.push(start === end ? `${start}` : `${start}-${end}`);
+  return ranges.join("_");
+}
+
 export function downloadPdf(bytes: Uint8Array, filename: string) {
   const blob = new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
 }

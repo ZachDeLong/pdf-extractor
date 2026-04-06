@@ -9,11 +9,15 @@ export function parsePageRange(input: string): number[] {
     if (!part) continue;
 
     if (part.includes("-")) {
-      const [startStr, endStr] = part.split("-");
-      const start = Number(startStr);
-      const end = Number(endStr);
+      const segments = part.split("-");
+      if (segments.length !== 2) {
+        throw new Error(`Invalid range format: ${part}`);
+      }
+      const [startStr, endStr] = segments;
+      const start = parseInt(startStr, 10);
+      const end = parseInt(endStr, 10);
 
-      if (isNaN(start) || isNaN(end)) {
+      if (!startStr || !endStr || isNaN(start) || isNaN(end) || start < 1 || end < 1) {
         throw new Error(`Invalid range format: ${part}`);
       }
       if (start > end) {
